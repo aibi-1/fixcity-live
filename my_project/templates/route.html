@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200..1000&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Nunito', sans-serif; }
+        body { background: #0a0a0a; }
+        .modal-enter { animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .toast { animation: slideInRight 0.3s ease; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .loading-skeleton { animation: pulse 1.5s infinite; background: #1f2937; }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+    </style>
+    <title>FixCity Bishkek</title>
+</head>
+<body class="bg-[#0a0a0a] text-white">
+
+    <header class="flex justify-between items-center px-6 py-3 border-b border-gray-800 sticky top-0 bg-[#0a0a0a]/90 backdrop-blur z-20">
+        <div class="flex items-center gap-2">
+            <a href="/" class="text-white font-bold text-[23px]">FixCity Bishkek</a>
+        </div>
+        <nav class="bg-[#1C1C1C] border border-[#3B3B3B] w-[270px] h-auto p-3 rounded-[14px] pl-[20px]">
+            <a href="/map" class=" text-[#DEDEDE] ml-[13px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Карта</a>
+            <a href="/route" class=" text-[#DEDEDE] ml-[10px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Жалобы</a>
+            <a href="/news" class=" text-[#DEDEDE] ml-[10px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Маршрут</a>
+        </nav>
+        
+        <!-- Контейнер для кнопки входа/профиля -->
+        <div id="authContainer">
+            <button id="loginBtn" class="w-[100px] h-auto p-2 bg-[#315D9E] hover:bg-[#598AD4] border border-[#588AD5] rounded-[11px] hover:scale-110 transition duration-300 text-[#DEDEDE] hover:text-white hover:shadow-[0_0_15px_rgba(35,106,222,0.6)] flex items-center justify-center gap-2">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>Войти</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Модалка входа -->
+    <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50 modal-enter">
+        <div class="bg-[#1C1C1C] border border-[#3B3B3B] p-8 rounded-[24px] w-[400px] relative">
+            <button id="closeLoginModal" class="absolute top-4 right-4 text-gray-500 hover:text-white transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-[#315D9E]/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-sign-in-alt text-[#315D9E] text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Вход</h2>
+                <p class="text-gray-400 text-sm mt-1">Войдите в свой аккаунт</p>
+            </div>
+            <form id="loginForm" class="flex flex-col gap-4">
+                <input type="email" id="loginEmail" placeholder="Email" required
+                    class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[12px] text-white outline-none focus:border-[#315D9E] transition">
+                <input type="password" id="loginPassword" placeholder="Пароль" required
+                    class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[12px] text-white outline-none focus:border-[#315D9E] transition">
+                <button type="submit" class="bg-[#315D9E] text-white py-3 rounded-[12px] font-bold hover:bg-[#598AD4] transition shadow-[0_0_15px_rgba(35,106,222,0.3)]">
+                    Войти
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <p class="text-gray-400 text-sm">
+                    Нет аккаунта? 
+                    <button id="showRegisterBtn" type="button" class="text-[#315D9E] hover:text-[#598AD4] transition font-semibold">
+                        Зарегистрироваться
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка регистрации -->
+    <div id="registerModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50 modal-enter">
+        <div class="bg-[#1C1C1C] border border-[#3B3B3B] p-8 rounded-[24px] w-[400px] relative">
+            <button id="closeRegisterModal" class="absolute top-4 right-4 text-gray-500 hover:text-white transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-user-plus text-green-500 text-2xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Регистрация</h2>
+                <p class="text-gray-400 text-sm mt-1">Создайте новый аккаунт</p>
+            </div>
+            <form id="registerForm" class="flex flex-col gap-4">
+                <input type="text" id="regName" placeholder="Имя" required
+                    class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[12px] text-white outline-none focus:border-green-500 transition">
+                <input type="email" id="regEmail" placeholder="Email" required
+                    class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[12px] text-white outline-none focus:border-green-500 transition">
+                <input type="password" id="regPassword" placeholder="Пароль (минимум 6 символов)" required
+                    class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[12px] text-white outline-none focus:border-green-500 transition">
+                <button type="submit" class="bg-green-600 text-white py-3 rounded-[12px] font-bold hover:bg-green-700 transition">
+                    Зарегистрироваться
+                </button>
+            </form>
+            <div class="mt-4 text-center">
+                <p class="text-gray-400 text-sm">
+                    Уже есть аккаунт? 
+                    <button id="showLoginFromRegBtn" type="button" class="text-[#315D9E] hover:text-[#598AD4] transition font-semibold">
+                        Войти
+                    </button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модалка профиля -->
+    <div id="profileModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50 modal-enter">
+        <div class="bg-[#1C1C1C] border border-[#3B3B3B] p-8 rounded-[24px] w-[350px] relative">
+            <button id="closeProfileModal" class="absolute top-4 right-4 text-gray-500 hover:text-white transition">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <div class="text-center">
+                <div class="w-20 h-20 bg-gradient-to-br from-[#315D9E] to-[#598AD4] rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user text-white text-3xl"></i>
+                </div>
+                <h3 id="profileName" class="text-xl font-bold text-white">Имя</h3>
+                <p id="profileEmail" class="text-gray-400 text-sm mt-1">email@example.com</p>
+                <div class="mt-6 space-y-3">
+                    <button id="logoutBtn" class="w-full bg-red-600/20 text-red-400 border border-red-500/30 py-2 rounded-[12px] hover:bg-red-600/30 transition flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast уведомления -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 hidden z-50 toast">
+        <div class="flex items-center gap-3">
+            <i id="toastIcon" class="fas fa-info-circle text-blue-400"></i>
+            <span id="toastMessage" class="text-sm text-white"></span>
+        </div>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 pb-20">
+        <div class="bg-[#151515] rounded-2xl border border-gray-800 p-4 mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-flag-checkered text-red-500 text-xl"></i>
+                    <span class="text-gray-300 text-sm">Всего жалоб:</span>
+                    <span id="totalCount" class="font-bold text-white text-xl">—</span>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button data-filter="all" class="filter-btn active bg-red-600/20 text-red-400 hover:bg-red-600/30 px-3 py-1.5 rounded-full text-sm transition">Все</button>
+                    <button data-filter="pothole" class="filter-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full text-sm transition">
+                        <i class="fas fa-circle-exclamation mr-1"></i> Ямы
+                    </button>
+                    <button data-filter="sidewalk" class="filter-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full text-sm transition">
+                        <i class="fas fa-person-walking mr-1"></i> Тротуары
+                    </button>
+                    <button data-filter="repair" class="filter-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full text-sm transition">
+                        <i class="fas fa-tools mr-1"></i> Ремонты
+                    </button>
+                    <button data-filter="manhole" class="filter-btn bg-gray-800 text-gray-300 hover:bg-gray-700 px-3 py-1.5 rounded-full text-sm transition">
+                        <i class="fas fa-circle mr-1"></i> Люки
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="complaintsContainer" class="space-y-4">
+            <div class="skeleton-card bg-[#151515] rounded-xl border border-gray-800 p-4">
+                <div class="flex gap-4">
+                    <div class="w-24 h-24 bg-gray-800 rounded-lg loading-skeleton"></div>
+                    <div class="flex-1 space-y-2">
+                        <div class="h-5 bg-gray-800 rounded w-1/3 loading-skeleton"></div>
+                        <div class="h-4 bg-gray-800 rounded w-1/2 loading-skeleton"></div>
+                        <div class="h-3 bg-gray-800 rounded w-2/3 loading-skeleton"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="emptyState" class="hidden text-center py-16 bg-[#151515] rounded-2xl border border-gray-800 mt-6">
+            <i class="fas fa-face-frown text-5xl text-gray-600 mb-3"></i>
+            <p class="text-gray-400">Пока нет ни одной жалобы</p>
+            <p class="text-gray-500 text-sm mt-1">Станьте первым, кто отметит проблему на карте</p>
+            <a href="/" class="inline-block mt-4 bg-red-600 hover:bg-red-700 px-5 py-2 rounded-full text-sm transition">
+                <i class="fas fa-plus mr-1"></i> Добавить жалобу
+            </a>
+        </div>
+    </main>
+
+    <script>
+        // ========== СИСТЕМА АВТОРИЗАЦИИ ==========
+        
+        const STORAGE_KEYS = {
+            USERS: 'fixcity_users',
+            CURRENT_USER: 'fixcity_current_user'
+        };
+        
+        function initializeUsers() {
+            if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
+                const defaultUsers = [
+                    {
+                        id: '1',
+                        name: 'Демо Пользователь',
+                        email: 'demo@fixcity.com',
+                        password: 'demo123',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(defaultUsers));
+            }
+        }
+        
+        function getUsers() {
+            return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
+        }
+        
+        function saveUsers(users) {
+            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+        }
+        
+        function getCurrentUser() {
+            const userJson = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
+            if (!userJson) return null;
+            try {
+                return JSON.parse(userJson);
+            } catch {
+                return null;
+            }
+        }
+        
+        function setCurrentUser(user) {
+            if (user) {
+                const safeUser = { ...user };
+                delete safeUser.password;
+                localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(safeUser));
+            } else {
+                localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+            }
+        }
+        
+        function registerUser(name, email, password) {
+            const users = getUsers();
+            if (users.some(u => u.email === email)) {
+                return { success: false, message: 'Пользователь с таким email уже существует' };
+            }
+            if (password.length < 6) {
+                return { success: false, message: 'Пароль должен содержать минимум 6 символов' };
+            }
+            const newUser = {
+                id: Date.now().toString(),
+                name: name.trim(),
+                email: email.trim().toLowerCase(),
+                password: password,
+                createdAt: new Date().toISOString()
+            };
+            users.push(newUser);
+            saveUsers(users);
+            setCurrentUser(newUser);
+            return { success: true, message: 'Регистрация успешна!', user: newUser };
+        }
+        
+        function loginUser(email, password) {
+            const users = getUsers();
+            const user = users.find(u => u.email === email.toLowerCase() && u.password === password);
+            if (user) {
+                setCurrentUser(user);
+                return { success: true, message: `Добро пожаловать, ${user.name}!`, user };
+            }
+            return { success: false, message: 'Неверный email или пароль' };
+        }
+        
+        function logoutUser() {
+            setCurrentUser(null);
+            return { success: true, message: 'Вы вышли из аккаунта' };
+        }
+        
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastMessage = document.getElementById('toastMessage');
+            let iconClass = 'fas fa-check-circle';
+            let colorClass = 'text-green-400';
+            if (type === 'error') {
+                iconClass = 'fas fa-exclamation-circle';
+                colorClass = 'text-red-400';
+            } else if (type === 'info') {
+                iconClass = 'fas fa-info-circle';
+                colorClass = 'text-blue-400';
+            }
+            toastIcon.className = `${iconClass} ${colorClass}`;
+            toastMessage.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+        
+        // Модалки
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const profileModal = document.getElementById('profileModal');
+        
+        function showLoginModal() {
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            loginModal.classList.remove('hidden');
+        }
+        
+        function showRegisterModal() {
+            document.getElementById('regName').value = '';
+            document.getElementById('regEmail').value = '';
+            document.getElementById('regPassword').value = '';
+            registerModal.classList.remove('hidden');
+        }
+        
+        function showProfileModal() {
+            const currentUser = getCurrentUser();
+            if (currentUser) {
+                document.getElementById('profileName').textContent = currentUser.name;
+                document.getElementById('profileEmail').textContent = currentUser.email;
+                profileModal.classList.remove('hidden');
+            }
+        }
+        
+        function closeAllModals() {
+            loginModal.classList.add('hidden');
+            registerModal.classList.add('hidden');
+            profileModal.classList.add('hidden');
+        }
+        
+        function updateAuthButton() {
+            const currentUser = getCurrentUser();
+            const authContainer = document.getElementById('authContainer');
+            if (currentUser) {
+                const firstLetter = currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U';
+                authContainer.innerHTML = `
+                    <button id="profileBtn" class="flex items-center gap-2 bg-[#1C1C1C] hover:bg-[#2a2a2a] border border-[#3B3B3B] rounded-[11px] px-3 py-1.5 transition hover:scale-105">
+                        <div class="w-8 h-8 rounded-full bg-gradient-to-r from-[#315D9E] to-[#598AD4] flex items-center justify-center text-white text-sm font-bold">
+                            ${firstLetter}
+                        </div>
+                        <span class="text-[#DEDEDE] text-sm max-w-[100px] truncate">${currentUser.name}</span>
+                        <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+                    </button>
+                `;
+                const profileBtn = document.getElementById('profileBtn');
+                if (profileBtn) profileBtn.addEventListener('click', showProfileModal);
+            } else {
+                authContainer.innerHTML = `
+                    <button id="loginBtn" class="w-[100px] h-auto p-2 bg-[#315D9E] hover:bg-[#598AD4] border border-[#588AD5] rounded-[11px] hover:scale-110 transition duration-300 text-[#DEDEDE] hover:text-white hover:shadow-[0_0_15px_rgba(35,106,222,0.6)] flex items-center justify-center gap-2">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Войти</span>
+                    </button>
+                `;
+                const newLoginBtn = document.getElementById('loginBtn');
+                if (newLoginBtn) newLoginBtn.addEventListener('click', showLoginModal);
+            }
+        }
+        
+        // Обработчики форм
+        document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const result = loginUser(email, password);
+            if (result.success) {
+                closeAllModals();
+                updateAuthButton();
+                showToast(result.message, 'success');
+            } else {
+                showToast(result.message, 'error');
+            }
+        });
+        
+        document.getElementById('registerForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            if (!name || !email || !password) {
+                showToast('Заполните все поля', 'error');
+                return;
+            }
+            const result = registerUser(name, email, password);
+            if (result.success) {
+                closeAllModals();
+                updateAuthButton();
+                showToast(result.message, 'success');
+            } else {
+                showToast(result.message, 'error');
+            }
+        });
+        
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            const result = logoutUser();
+            closeAllModals();
+            updateAuthButton();
+            showToast(result.message, 'info');
+        });
+        
+        document.getElementById('closeLoginModal')?.addEventListener('click', closeAllModals);
+        document.getElementById('closeRegisterModal')?.addEventListener('click', closeAllModals);
+        document.getElementById('closeProfileModal')?.addEventListener('click', closeAllModals);
+        
+        document.getElementById('showRegisterBtn')?.addEventListener('click', () => {
+            closeAllModals();
+            showRegisterModal();
+        });
+        
+        document.getElementById('showLoginFromRegBtn')?.addEventListener('click', () => {
+            closeAllModals();
+            showLoginModal();
+        });
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === loginModal) closeAllModals();
+            if (e.target === registerModal) closeAllModals();
+            if (e.target === profileModal) closeAllModals();
+        });
+        
+        // ========== ЖАЛОБЫ ==========
+        
+        let allComplaints = [];
+        let currentFilter = 'all';
+        
+        async function fetchComplaints() {
+            await new Promise(resolve => setTimeout(resolve, 800));
+            return [
+                { id: 1, type: 'pothole', lat: 42.8746, lng: 74.5698, timestamp: new Date(Date.now() - 2*60*60*1000).toISOString(), photo_thumbnail: null, ai_confidence: 0.92, address: 'пр. Чуй, 150' },
+                { id: 2, type: 'sidewalk', lat: 42.8792, lng: 74.5934, timestamp: new Date(Date.now() - 5*60*60*1000).toISOString(), photo_thumbnail: null, ai_confidence: 0.87, address: 'ул. Киевская, 44' },
+                { id: 3, type: 'repair', lat: 42.8652, lng: 74.5512, timestamp: new Date(Date.now() - 24*60*60*1000).toISOString(), photo_thumbnail: null, ai_confidence: 0.78, address: 'ул. Ахунбаева, 79' },
+                { id: 4, type: 'manhole', lat: 42.8824, lng: 74.6122, timestamp: new Date(Date.now() - 3*60*60*1000).toISOString(), photo_thumbnail: null, ai_confidence: 0.95, address: 'пр. Жибек Жолу' },
+                { id: 5, type: 'pothole', lat: 42.8689, lng: 74.5851, timestamp: new Date(Date.now() - 45*60*1000).toISOString(), photo_thumbnail: null, ai_confidence: 0.89, address: 'ул. Московская / Тоголок Молдо' }
+            ];
+        }
+        
+        const typeIcons = {
+            pothole: { icon: 'fa-circle-exclamation', label: 'Яма/выбоина', color: 'text-red-400', bg: 'bg-red-500/10' },
+            sidewalk: { icon: 'fa-person-walking', label: 'Тротуар', color: 'text-orange-400', bg: 'bg-orange-500/10' },
+            repair: { icon: 'fa-tools', label: 'Ремонт/долгострой', color: 'text-yellow-400', bg: 'bg-yellow-500/10' },
+            manhole: { icon: 'fa-circle', label: 'Люк', color: 'text-blue-400', bg: 'bg-blue-500/10' }
+        };
+        
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            const now = new Date();
+            const diffHours = Math.floor((now - date) / (1000 * 60 * 60));
+            if (diffHours < 1) return 'только что';
+            if (diffHours < 24) return `${diffHours} ч назад`;
+            return `${Math.floor(diffHours / 24)} д назад`;
+        }
+        
+        function renderComplaints(complaints) {
+            const container = document.getElementById('complaintsContainer');
+            const emptyState = document.getElementById('emptyState');
+            if (!complaints.length) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                document.getElementById('totalCount').innerText = '0';
+                return;
+            }
+            emptyState.classList.add('hidden');
+            document.getElementById('totalCount').innerText = complaints.length;
+            container.innerHTML = complaints.map(complaint => {
+                const typeMeta = typeIcons[complaint.type] || typeIcons.pothole;
+                const thumbHtml = complaint.photo_thumbnail 
+                    ? `<img src="${complaint.photo_thumbnail}" class="w-24 h-24 object-cover rounded-lg bg-gray-900">`
+                    : `<div class="w-24 h-24 bg-gray-800 rounded-lg flex items-center justify-center text-gray-600"><i class="fas fa-image text-3xl"></i></div>`;
+                return `
+                    <div class="bg-[#121212] rounded-xl border border-gray-800 hover:border-gray-700 transition p-4">
+                        <div class="flex gap-4 flex-col sm:flex-row">
+                            ${thumbHtml}
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 flex-wrap mb-2">
+                                    <span class="${typeMeta.bg} ${typeMeta.color} text-xs px-2 py-1 rounded-full flex items-center gap-1">
+                                        <i class="fas ${typeMeta.icon} text-xs"></i> ${typeMeta.label}
+                                    </span>
+                                    ${complaint.ai_confidence ? `<span class="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded-full"><i class="fas fa-microchip"></i> AI: ${Math.round(complaint.ai_confidence * 100)}%</span>` : ''}
+                                    <span class="text-gray-500 text-xs flex items-center gap-1"><i class="far fa-clock"></i> ${formatDate(complaint.timestamp)}</span>
+                                </div>
+                                <div class="text-gray-300 text-sm mb-2 font-medium"><i class="fas fa-location-dot text-red-400 mr-1"></i> ${complaint.address || `${complaint.lat.toFixed(5)}, ${complaint.lng.toFixed(5)}`}</div>
+                                <div class="flex gap-3 mt-3">
+                                    <button class="show-on-map text-gray-400 hover:text-white text-xs transition" data-lat="${complaint.lat}" data-lng="${complaint.lng}"><i class="fas fa-map-marker-alt"></i> На карте</button>
+                                    <button class="copy-coords text-gray-400 hover:text-white text-xs transition" data-coords="${complaint.lat},${complaint.lng}"><i class="fas fa-copy"></i> Координаты</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            document.querySelectorAll('.show-on-map').forEach(btn => {
+                btn.addEventListener('click', () => alert(`📍 Переход к точке: ${btn.dataset.lat}, ${btn.dataset.lng}`));
+            });
+            document.querySelectorAll('.copy-coords').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    await navigator.clipboard.writeText(btn.dataset.coords);
+                    alert('Координаты скопированы');
+                });
+            });
+        }
+        
+        function filterComplaints() {
+            renderComplaints(currentFilter === 'all' ? allComplaints : allComplaints.filter(c => c.type === currentFilter));
+        }
+        
+        function initFilters() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => {
+                        b.classList.remove('bg-red-600/20', 'text-red-400');
+                        b.classList.add('bg-gray-800', 'text-gray-300');
+                    });
+                    btn.classList.remove('bg-gray-800', 'text-gray-300');
+                    btn.classList.add('bg-red-600/20', 'text-red-400');
+                    currentFilter = btn.dataset.filter;
+                    filterComplaints();
+                });
+            });
+        }
+        
+        async function load() {
+            allComplaints = await fetchComplaints();
+            filterComplaints();
+            initFilters();
+        }
+        
+        // Инициализация
+        initializeUsers();
+        updateAuthButton();
+        load();
+        setInterval(async () => {
+            const newData = await fetchComplaints();
+            if (JSON.stringify(newData) !== JSON.stringify(allComplaints)) {
+                allComplaints = newData;
+                filterComplaints();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

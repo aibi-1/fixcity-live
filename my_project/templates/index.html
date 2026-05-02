@@ -7,15 +7,153 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
-    <title>my project</title>
+    <title>FixCity</title>
 </head>
-<body>
-        <section class="flex justify-center mt-[60px]">
-            <div class="w-[500px] h-4">
-    <h1 class="text-[34px] font-bold ml-[30%]">Привет!</h1>
-    <p class="text-[24px] mt-[20px] ">Mой продукт решает проблемы с прозрачностью и обратной связью между гражданскими и городскими службами.  </p>
+<body class="bg-[black]">
+
+    <header class="flex justify-center items-center mt-[10px]">
+        <a href="/" class="text-white font-bold text-[23px] ml-[30px]">FixCity Bishkek</a>
+        <nav class="bg-[#1C1C1C] border border-[#3B3B3B] w-[270px] h-auto p-3 rounded-[14px] ml-[390px] pl-[20px]">
+            <a href="/map" class=" text-[#DEDEDE] ml-[13px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Карта</a>
+            <a href="/route" class=" text-[#DEDEDE] ml-[10px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Жалобы</a>
+            <a href="/news" class=" text-[#DEDEDE] ml-[10px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Маршрут</a>
+        </nav>
+            <button id="loginBtn" class="w-[100px] h-auto p-2   bg-[#315D9E] hover:bg-[#598AD4] text-[#969696] ml-[460px]  border border-[#588AD5]  
+            rounded-[11px] hover:scale-110  transition duration-300 text-[#DEDEDE] hover:text-white
+            hover:shadow-[0_0_15px_rgba(35,106,222,0.6)]">Войти</button>
+            <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50">
+    <div class="bg-[#1C1C1C] border border-[#3B3B3B] p-8 rounded-[20px] w-[350px] relative">
+        <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+        <h2 class="text-white text-2xl font-bold mb-6">Вход</h2>
+        <form class="flex flex-col gap-4">
+            <input type="email" placeholder="Email" class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[10px] text-white outline-none focus:border-[#236ADE]">
+            <input type="password" placeholder="Пароль" class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[10px] text-white outline-none focus:border-[#236ADE]">
+            <button type="submit" class="bg-[#236ADE] text-white py-3 rounded-[10px] font-bold  hover:bg-[#598AD4]
+            transition shadow-[0_0_15px_rgba(35,106,222,0.6)]">Войти</button>
+        </form>
+    </div>
+</div>
+
+    </header>
+
+        <section class="flex justify-center mt-[90px]">
+                <div class="w-[800px]">
+                    <h1 class="text-[white] font-bold text-[38px] ">Какая проблема Бишкека первой приходит вам в голову?</h1>
+                    <ul>
+                        <li class="text-white">AI-маршруты в обход проблем.(Так же бесплатное AI-прогназирование нагредающих пробок!)</li>
+                        <li class="text-white">Карта ремонтов</li>
+                        <li class="text-white">Жалобы с фото</li>
+                        <li class="text-white"></li>
+                    </ul>
+                    <p class="text-[gray] text-[15px]  mt-[18px]"> Введите свою проблему, что бы мы смогли подобрать вам лучшее решение:</p>
+             <div class="mt-[5px]">
+                   <form method="POST">
+                <input type="text" name="text" placeholder="Введите свою проблему.." class="border border-[#3B3B3B] bg-[#1C1C1C] ml-[30px] mt-[4px] rounded-[17px] px-3 py-2 w-[380px] 
+                outline-none text-[#E1E9F0] focus:border-[#5B8DD2] ">
+                <button type="submit" class=" mt-[3px] w-[100px] absolute rounded-[17px] bg-[#107BE3] text-[#DEDEDE] border border-[#3B3B3B]  text-[#DEDEDE] py-2 ml-[6px] 
+                hover:bg-[#236ADE] transition  hover:scale-110  transition duration-300
+                hover:shadow-[0_0_15px_rgba(35,106,222,0.6)]">Отправить</button>
+            </form>
+            {% if result %}
+                <p class="text-[#248DF0] ml-[36px] mt-[7px]">{{ result }}</p>
+            {% endif %}
             </div>
-         </section>
-         
+                </div>
+        </section>
+
+
+
+    <section class="flex justify-center mt-[70px]">
+        <div class="relative w-[800px] h-[400px] overflow-hidden rounded-[20px]">
+             <div id="slider" class="flex transition-transform duration-300">
+        <img class="min-w-full" src="https://cdn-1.aki.kg/cdn-st-0/qgj/B/3547990.424020c2255d35ba6171dd74375b0447.jpg" alt="">
+        <img class="min-w-full" src="https://lh4.googleusercontent.com/proxy/g63meQNtxGc87b7rcI3QHCMPuvaoKx2VwTJBL5gu2fH2ttYabOGg2RHQKWhd6NVOWsrS2Nhtn6cAXzvZhWH11rJu8CJOYrIaAXTgWAmEr9PtAmChmlH8h3fpKuQ0YKZzppyaKGHCHXNn0oDyGNJbnaMSQFlZ8Lq4TBk7cQ" alt="">
+        <img class="min-w-full" src="https://daily.jstor.org/wp-content/uploads/2017/12/traffic_jam_1050x700.jpg" alt="">
+    </div>
+
+  <button id="prev"
+    class="absolute left-2 top-1/2 -translate-y-1/2 bg-white px-3 py-1 rounded shadow  transition 
+     hover:scale-110  transition duration-300 ">
+    ←
+  </button>
+
+  <button id="next"
+    class="absolute right-2 top-1/2 -translate-y-1/2 bg-white px-3 py-1 rounded shadow  transition  hover:scale-110  transition duration-300">
+    →
+  </button>
+</div>
+  </section>
+  </div>
+
+
+
+
+         <div class="flex justify-center mt-[120px] ">
+                <h class="text-white text-[40px] font-bold">Выберите блок что бы оказатся на странице</h1>
+            <div class="w-[900px] h-[1px] bg-[#3B3B3B] mt-[20px]"></div>
+        </div>
+  <section class="flex justify-center mt-[20px] gap-[29px]">
+    <!-- Карточка Пробки -->
+    <a href="/route" class="w-[400px] h-auto p-5 bg-[#1C1C1C] rounded-[17px] border border-[#3B3B3B] flex flex-col hover:scale-110 transition duration-300">
+        <h1 class="text-[white] text-[30px] font-bold ml-[15px]">Пробки</h1>
+        <p class="text-[#4982DE] text-[15px] ml-[15px]">Специально для вас, AI-прогназирование...</p>
+    </a>
+
+    <!-- Карточка Маршруты -->
+    <a href="/map" class="w-[400px] h-auto p-5 bg-[#1C1C1C] rounded-[17px] border border-[#3B3B3B] flex flex-col hover:scale-110 transition duration-300">
+        <h1 class="text-[white] text-[30px] font-bold ml-[15px]">Маршруты</h1>
+        <p class="text-[#4982DE] text-[15px] ml-[15px]">Умная карта дорог. Узнайте мнение горожан!</p>
+    </a>
+
+    <!-- Карточка Новости -->
+    <a href="/traffic" class="w-[400px] h-auto p-5 bg-[#1C1C1C] rounded-[17px] border border-[#3B3B3B] flex flex-col hover:scale-110 transition duration-300">
+        <h1 class="text-[white] text-[30px] font-bold ml-[15px]">Новости</h1>
+        <p class="text-[#4982DE] text-[15px] ml-[15px]">Где и когда будут проводится реформы?</p>
+    </a>
+</section>
+
+<script>
+  let index = 0;
+  const slider = document.getElementById("slider");
+  const images = slider.children.length;
+
+  document.getElementById("next").onclick = () => {
+    if (index < images - 1) {
+      index++;
+      slider.style.transform = `translateX(-${index * 100}%)`;
+    }
+  };
+
+  document.getElementById("prev").onclick = () => {
+    if (index > 0) {
+      index--;
+      slider.style.transform = `translateX(-${index * 100}%)`;
+    }
+  }; 
+
+
+const loginBtn = document.getElementById('loginBtn');
+const loginModal = document.getElementById('loginModal');
+const closeModal = document.getElementById('closeModal');
+
+loginBtn.onclick = (e) => {
+    e.preventDefault(); // Чтобы страница не перезагружалась
+    loginModal.classList.remove('hidden');
+};
+
+closeModal.onclick = () => {
+    loginModal.classList.add('hidden');
+};
+
+window.onclick = (event) => {
+    if (event.target == loginModal) {
+        loginModal.classList.add('hidden');
+    }
+};
+
+</script>
+
+
+
 </body>
 </html>

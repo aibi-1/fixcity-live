@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body class="bg-[#0a0a0a] text-white">
+
+    <header class="flex justify-center items-center mt-[10px]">
+        <a href="/" class="text-white font-bold text-[23px] ml-[30px]">FixCity Bishkek</a>
+         <nav class="bg-[#1C1C1C] border border-[#3B3B3B] w-[270px] h-auto p-3 rounded-[14px] ml-[390px] pl-[20px]">
+            <a href="/map" class=" text-[#DEDEDE] ml-[13px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Карта</a>
+            <a href="/route" class=" text-[#DEDEDE] ml-[10px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Жалобы</a>
+            <a href="/news" class=" text-[#DEDEDE] ml-[10px] hover:scale-110  transition duration-300 hover:text-[#248DF0]">Маршрут</a>
+        </nav>
+   <button id="loginBtn" class="w-[100px] h-auto p-2   bg-[#315D9E] hover:bg-[#598AD4] text-[#969696] ml-[460px]  border border-[#588AD5]  
+            rounded-[11px] hover:scale-110  transition duration-300 text-[#DEDEDE] hover:text-white
+            hover:shadow-[0_0_15px_rgba(35,106,222,0.6)]">Войти</button>
+            <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50">
+    <div class="bg-[#1C1C1C] border border-[#3B3B3B] p-8 rounded-[20px] w-[350px] relative">
+        <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+        <h2 class="text-white text-2xl font-bold mb-6">Вход</h2>
+        <form class="flex flex-col gap-4">
+            <input type="email" placeholder="Email" class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[10px] text-white outline-none focus:border-[#236ADE]">
+            <input type="password" placeholder="Пароль" class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[10px] text-white outline-none focus:border-[#236ADE]">
+            <button type="submit" class="bg-[#236ADE] text-white py-3 rounded-[10px] font-bold  hover:bg-[#598AD4]
+            transition shadow-[0_0_15px_rgba(35,106,222,0.6)]">Войти</button>
+        </form>
+    </div>
+</div>
+ </header>
+
+
+    <!-- Основной контент -->
+    <div class="max-w-7xl mx-auto px-4 py-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            
+            <!-- Левая панель с AI-аналитикой -->
+            <div class="space-y-4">
+                <!-- AI Статус -->
+                <div class="bg-gradient-to-r from-purple-900/30 to-red-900/30 rounded-2xl border border-purple-500/30 p-4">
+                    <div class="flex items-center gap-2 mb-2">
+                        <i class="fas fa-microchip text-purple-400"></i>
+                        <span class="text-xs text-purple-300">AI Traffic Analysis Active</span>
+                        <span class="ml-auto flex gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span><span class="text-xs text-gray-400">Real-time</span></span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-purple-500/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-robot text-purple-400 text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-sm font-semibold">AI Assistant</div>
+                            <div class="text-xs text-gray-400" id="aiStatus">Анализирую трафик Бишкека...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Карточка маршрута -->
+                <div class="bg-[#151515] rounded-2xl border border-gray-800 p-5">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fas fa-route text-purple-500"></i> AI Маршрут
+                        <span class="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">умный</span>
+                    </h2>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                            <i class="fas fa-circle text-green-500 text-xs"></i> Откуда
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="pointA" placeholder="Клик на карте или введите адрес" 
+                                   class="flex-1 bg-[#0a0a0a] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                            <button id="useMyLocationA" class="bg-gray-800 hover:bg-gray-700 px-3 rounded-lg transition">
+                                <i class="fas fa-location-dot text-purple-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm text-gray-400 mb-2 flex items-center gap-2">
+                            <i class="fas fa-flag-checkered text-red-500 text-xs"></i> Куда
+                        </label>
+                        <div class="flex gap-2">
+                            <input type="text" id="pointB" placeholder="Клик на карте или введите адрес" 
+                                   class="flex-1 bg-[#0a0a0a] border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+                            <button id="useMyLocationB" class="bg-gray-800 hover:bg-gray-700 px-3 rounded-lg transition">
+                                <i class="fas fa-location-dot text-purple-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2 mt-5">
+                        <button id="buildRouteBtn" class="flex-1 bg-gradient-to-r from-purple-600 to-red-600 hover:from-purple-700 hover:to-red-700 py-2.5 rounded-xl font-semibold transition flex items-center justify-center gap-2">
+                            <i class="fas fa-microchip"></i> AI Маршрут
+                        </button>
+                        <button id="swapPointsBtn" class="bg-gray-800 hover:bg-gray-700 px-4 rounded-xl transition">
+                            <i class="fas fa-arrow-up-down"></i>
+                        </button>
+                        <button id="clearRouteBtn" class="bg-gray-800 hover:bg-gray-700 px-4 rounded-xl transition">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- AI Статистика маршрута -->
+                <div id="routeStats" class="bg-[#151515] rounded-2xl border border-gray-800 p-5 hidden animate-slide">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-semibold text-sm flex items-center gap-2">
+                            <i class="fas fa-chart-line text-purple-400"></i> AI Аналитика
+                        </h3>
+                        <div class="text-xs bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full" id="aiConfidence">достоверность: 94%</div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex justify-between"><span class="text-gray-400">📏 Расстояние:</span><span id="routeDistance" class="font-mono">—</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">⏱️ Время (с учётом пробок):</span><span id="routeTime" class="font-mono text-orange-400">—</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">🚗 Загруженность:</span><span id="trafficDensity" class="font-mono">—</span></div>
+                        <div class="flex justify-between"><span class="text-gray-400">⚠️ Препятствия:</span><span id="routePotholes" class="font-mono">—</span></div>
+                    </div>
+                    
+                    <!-- AI Рекомендация -->
+                    <div id="aiRecommendation" class="mt-4 pt-3 border-t border-gray-800">
+                        <div class="flex gap-2 text-sm">
+                            <i class="fas fa-lightbulb text-yellow-500"></i>
+                            <span class="text-gray-300" id="recommendationText">Анализирую дорожную ситуацию...</span>
+                        </div>
+                    </div>
+
+                    <!-- Альтернативные маршруты от AI -->
+                    <div id="alternativesContainer" class="mt-3"></div>
+                </div>
+
+                <!-- Легенда -->
+                <div class="bg-[#151515] rounded-2xl border border-gray-800 p-3 text-xs text-gray-400">
+                    <div class="flex flex-wrap gap-3 justify-between">
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-green-500"></div><span>Старт</span></div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-3 rounded-full bg-red-500"></div><span>Финиш</span></div>
+                        <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-orange-400"></div><span>Яма</span></div>
+                        <div class="flex items-center gap-1"><div class="w-3 h-1 bg-red-500"></div><span>Пробка</span></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Карта -->
+            <div class="lg:col-span-2 relative">
+                <div id="map" class="h-[550px] rounded-2xl border border-gray-800"></div>
+                <div class="mt-3 text-xs text-gray-500 text-center flex justify-between items-center">
+                    <span><i class="fas fa-mouse-pointer"></i> Кликните на карту для выбора точки</span>
+                    <div class="flex gap-2">
+                        <button id="modeA" class="px-4 py-1.5 rounded-lg text-xs bg-green-600/80 text-white transition">📍 Точка А</button>
+                        <button id="modeB" class="px-4 py-1.5 rounded-lg text-xs bg-gray-700 text-white transition">📍 Точка Б</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="loginModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex justify-center items-center hidden z-50">
+        <div class="bg-[#1C1C1C] border border-[#3B3B3B] p-8 rounded-[20px] w-[350px] relative">
+            <button id="closeModal" class="absolute top-4 right-4 text-gray-500 hover:text-white">✕</button>
+            <h2 class="text-white text-2xl font-bold mb-6">Вход в AI систему</h2>
+            <form class="flex flex-col gap-4">
+                <input type="email" placeholder="Email" class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[10px] text-white outline-none focus:border-purple-500">
+                <input type="password" placeholder="Пароль" class="bg-[#121212] border border-[#3B3B3B] p-3 rounded-[10px] text-white outline-none focus:border-purple-500">
+                <button type="submit" class="bg-gradient-to-r from-purple-600 to-red-600 text-white py-3 rounded-[10px] font-bold transition">Войти</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ---------- КАРТА ----------
+        const map = L.map('map').setView([42.8746, 74.5698], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap',
+            subdomains: 'abcd'
+        }).addTo(map);
+
+        // ---------- ПЕРЕМЕННЫЕ ----------
+        let startPoint = null, endPoint = null;
+        let startMarker = null, endMarker = null;
+        let routingControl = null;
+        let clickMode = 'a';
+        let potholes = [];
+        
+        // ---------- ИСКУССТВЕННЫЙ ИНТЕЛЛЕКТ (AI МОДЕЛЬ) ----------
+        // Симуляция AI-анализа трафика на основе:
+        // 1. Времени суток
+        // 2. Дня недели
+        // 3. Исторических данных о пробках в Бишкеке
+        // 4. Близости к ямам и ремонтам
+        
+        class TrafficAI {
+            constructor() {
+                this.modelLoaded = true;
+                // Исторические данные о пробках в Бишкеке по часам (коэффициент загруженности 0-1)
+                this.trafficPattern = {
+                    0: 0.1, 1: 0.08, 2: 0.05, 3: 0.04, 4: 0.06, 5: 0.15, 6: 0.4, 7: 0.7,
+                    8: 0.85, 9: 0.75, 10: 0.65, 11: 0.6, 12: 0.65, 13: 0.7, 14: 0.75, 15: 0.8,
+                    16: 0.85, 17: 0.9, 18: 0.88, 19: 0.75, 20: 0.6, 21: 0.45, 22: 0.3, 23: 0.18
+                };
+                
+                // Проблемные зоны Бишкека (координаты с высоким трафиком)
+                this.hotZones = [
+                    { lat: 42.8746, lng: 74.5698, name: "Центр", factor: 1.3 },      // центр
+                    { lat: 42.8792, lng: 74.5934, name: "Восток-5", factor: 1.2 },    // Восток-5
+                    { lat: 42.8652, lng: 74.5512, name: "Запад", factor: 1.1 },       // запад
+                    { lat: 42.8824, lng: 74.6122, name: "Аламедин", factor: 1.25 },   // Аламедин
+                    { lat: 42.8602, lng: 74.5826, name: "Юг", factor: 1.15 }          // юг
+                ];
+            }
+            
+            // Получить текущий коэффициент загруженности для точки
+            getTrafficFactor(lat, lng) {
+                const now = new Date();
+                const hour = now.getHours();
+                const dayOfWeek = now.getDay(); // 0-6
+                
+                // Базовый коэффициент по времени
+                let baseFactor = this.trafficPattern[hour] || 0.5;
+                
+                // Выходные - трафик меньше на 30%
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    baseFactor *= 0.7;
+                }
+                
+                // Утро понедельника - кошмар
+                if (dayOfWeek === 1 && hour >= 8 && hour <= 10) {
+                    baseFactor *= 1.3;
+                }
+                
+                // Пятница вечер
+                if (dayOfWeek === 5 && hour >= 17 && hour <= 19) {
+                    baseFactor *= 1.25;
+                }
+                
+                // Проверка попадания в горячие зоны
+                let zoneFactor = 1.0;
+                for (const zone of this.hotZones) {
+                    const dist = Math.hypot(lat - zone.lat, lng - zone.lng);
+                    if (dist < 0.03) { // ~3 км
+                        zoneFactor = zone.factor;
+                        break;
+                    }
+                }
+                
+                return Math.min(1.0, baseFactor * zoneFactor);
+            }
+            
+            // Рассчитать время с учётом пробок
+            calculateRealTime(baseMinutes, lat, lng) {
+                const trafficFactor = this.getTrafficFactor(lat, lng);
+                // Логарифмическая задержка: при factor=0.8 -> +50% времени
+                const delay = Math.pow(1 + trafficFactor, 1.5);
+                return Math.round(baseMinutes * delay);
+            }
+            
+            // AI прогноз загруженности для маршрута
+            analyzeRouteTraffic(routeLatLngs, baseTimeMinutes) {
+                if (!routeLatLngs || routeLatLngs.length === 0) return { realTime: baseTimeMinutes, density: "средний", recommendation: "" };
+                
+                // Выбираем опорные точки маршрута
+                const samplePoints = routeLatLngs.filter((_, i) => i % Math.ceil(routeLatLngs.length / 10) === 0);
+                
+                let totalTraffic = 0;
+                for (const point of samplePoints) {
+                    totalTraffic += this.getTrafficFactor(point.lat, point.lng);
+                }
+                const avgTraffic = totalTraffic / samplePoints.length;
+                
+                // Реальное время с учётом пробок
+                const realTime = Math.round(baseTimeMinutes * (1 + avgTraffic * 0.8));
+                
+                // Определяем плотность
+                let density = "";
+                if (avgTraffic < 0.3) density = "🟢 свободный";
+                else if (avgTraffic < 0.6) density = "🟡 средний";
+                else density = "🔴 плотный / пробки";
+                
+                // AI рекомендация
+                let recommendation = "";
+                if (avgTraffic > 0.7) {
+                    recommendation = "⚠️ На маршруте ожидаются пробки. Рекомендуется выехать раньше или выбрать объезд.";
+                } else if (avgTraffic > 0.5) {
+                    recommendation = "🚗 Умеренное движение. Возможны небольшие задержки.";
+                } else {
+                    recommendation = "✅ Дороги свободны. Оптимальное время для поездки.";
+                }
+                
+                return { realTime, density, recommendation, trafficScore: avgTraffic };
+            }
+            
+            // AI выбор лучшего маршрута из нескольких
+            selectBestRoute(routes) {
+                let best = null;
+                let bestScore = -Infinity;
+                
+                for (const route of routes) {
+                    // Комбинированная оценка: меньше времени - лучше
+                    const score = -route.realTime;
+                    if (score > bestScore) {
+                        bestScore = score;
+                        best = route;
+                    }
+                }
+                return best;
+            }
+        }
+        
+        // Инициализируем AI
+        const trafficAI = new TrafficAI();
+        
+        // ---------- ЗАГРУЗКА ЯМ ----------
+        async function loadPotholes() {
+            try {
+                // ДЕМО-ДАННЫЕ ЯМ
+                potholes = [
+                    { lat: 42.8710, lng: 74.5730, type: 'pothole', severity: 'high' },
+                    { lat: 42.8775, lng: 74.5850, type: 'pothole', severity: 'medium' },
+                    { lat: 42.8680, lng: 74.5600, type: 'repair', severity: 'high' },
+                    { lat: 42.8820, lng: 74.5780, type: 'pothole', severity: 'low' },
+                    { lat: 42.8655, lng: 74.5950, type: 'pothole', severity: 'medium' },
+                    { lat: 42.8550, lng: 74.5500, type: 'pothole', severity: 'high' },
+                    { lat: 42.8890, lng: 74.6080, type: 'repair', severity: 'medium' },
+                    { lat: 42.8690, lng: 74.5850, type: 'pothole', severity: 'high' }
+                ];
+                
+                // Отображаем ямы на карте
+                potholes.forEach(p => {
+                    const color = p.severity === 'high' ? '#ef4444' : (p.severity === 'medium' ? '#f97316' : '#eab308');
+                    L.circleMarker([p.lat, p.lng], {
+                        radius: 5,
+                        fillColor: color,
+                        color: 'white',
+                        weight: 1,
+                        fillOpacity: 0.8
+                    }).addTo(map).bindPopup(`<b>⚠️ ${p.type === 'pothole' ? 'Яма' : 'Ремонт'}</b><br>Опасность: ${p.severity}`);
+                });
+            } catch(e) { console.error(e); }
+        }
+        
+        // Проверка ям на маршруте
+        function findPotholesOnRoute(routePoints) {
+            if (!routePoints) return [];
+            const nearby = [];
+            for (const p of potholes) {
+                let minDist = Infinity;
+                for (const point of routePoints) {
+                    const dist = map.distance([p.lat, p.lng], point);
+                    if (dist < minDist) minDist = dist;
+                }
+                if (minDist < 50) nearby.push(p);
+            }
+            return nearby;
+        }
+        
+        // ---------- ПОСТРОЕНИЕ AI МАРШРУТА ----------
+        async function buildAISmartRoute() {
+            if (!startPoint || !endPoint) {
+                alert('Выберите начальную и конечную точки');
+                return;
+            }
+            
+            // Показываем загрузку
+            document.getElementById('aiStatus').innerHTML = '<span class="loading-spinner inline-block mr-1"></span> AI анализирует трафик...';
+            
+            if (routingControl) map.removeControl(routingControl);
+            
+            routingControl = L.Routing.control({
+                waypoints: [L.latLng(startPoint.lat, startPoint.lng), L.latLng(endPoint.lat, endPoint.lng)],
+                router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                lineOptions: { styles: [{ color: '#8b5cf6', weight: 5, opacity: 0.9 }] },
+                showAlternatives: true,
+                fitSelectedRoutes: true,
+                draggableWaypoints: false,
+                show: false
+            }).addTo(map);
+            
+            routingControl.on('routesfound', (e) => {
+                const routes = e.routes;
+                const mainRoute = routes[0];
+                const nearbyPotholes = findPotholesOnRoute(mainRoute.coordinates);
+                
+                // AI анализ трафика
+                const aiAnalysis = trafficAI.analyzeRouteTraffic(mainRoute.coordinates, Math.round(mainRoute.summary.totalTime / 60));
+                
+                // Обновляем интерфейс
+                document.getElementById('aiStatus').innerHTML = '🧠 AI анализ завершён';
+                document.getElementById('routeStats').classList.remove('hidden');
+                document.getElementById('routeDistance').innerHTML = (mainRoute.summary.totalDistance / 1000).toFixed(1) + ' км';
+                document.getElementById('routeTime').innerHTML = `${aiAnalysis.realTime} мин (прогноз)`;
+                document.getElementById('trafficDensity').innerHTML = aiAnalysis.density;
+                document.getElementById('routePotholes').innerHTML = `${nearbyPotholes.length} ${nearbyPotholes.length > 0 ? '⚠️' : '✅'}`;
+                document.getElementById('recommendationText').innerHTML = aiAnalysis.recommendation;
+                
+                // AI достоверность (зависит от времени суток)
+                const hour = new Date().getHours();
+                const confidence = hour >= 6 && hour <= 22 ? 94 : 87;
+                document.getElementById('aiConfidence').innerHTML = `достоверность: ${confidence}%`;
+                
+                // Визуализация тепловых зон на маршруте (пробки)
+                if (aiAnalysis.trafficScore > 0.6) {
+                    // Показываем предупреждение о пробках на карте
+                    const center = mainRoute.coordinates[Math.floor(mainRoute.coordinates.length / 2)];
+                    L.circleMarker([center.lat, center.lng], {
+                        radius: 30,
+                        fillColor: '#ef4444',
+                        color: '#ff0000',
+                        weight: 2,
+                        fillOpacity: 0.3,
+                        className: 'traffic-heat'
+                    }).addTo(map).bindPopup('🔴 Пробка! AI рекомендует объезд');
+                }
+                
+                // Показываем ямы на маршруте
+                nearbyPotholes.forEach(p => {
+                    L.circleMarker([p.lat, p.lng], {
+                        radius: 12,
+                        fillColor: '#f97316',
+                        color: 'white',
+                        weight: 2,
+                        fillOpacity: 0.7
+                    }).addTo(map).bindPopup('⚠️ Яма на пути!');
+                });
+                
+                // Альтернативные маршруты от AI (если есть)
+                const altContainer = document.getElementById('alternativesContainer');
+                if (routes.length > 1 && aiAnalysis.trafficScore > 0.5) {
+                    const altRoute = routes[1];
+                    const altAIAnalysis = trafficAI.analyzeRouteTraffic(altRoute.coordinates, Math.round(altRoute.summary.totalTime / 60));
+                    altContainer.innerHTML = `
+                        <div class="text-xs mt-2 pt-2 border-t border-gray-800">
+                            <div class="flex justify-between items-center">
+                                <span><i class="fas fa-random text-purple-400"></i> Альтернатива от AI:</span>
+                                <span class="text-green-400">${altAIAnalysis.realTime} мин</span>
+                            </div>
+                            <div class="text-gray-400 text-xs mt-1">${altAIAnalysis.density}</div>
+                            <button id="useAltRoute" class="mt-2 text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded-lg w-full transition">
+                                Использовать этот маршрут
+                            </button>
+                        </div>
+                    `;
+                    document.getElementById('useAltRoute')?.addEventListener('click', () => {
+                        if (routingControl) map.removeControl(routingControl);
+                        const altRouting = L.Routing.control({
+                            waypoints: [L.latLng(startPoint.lat, startPoint.lng), L.latLng(endPoint.lat, endPoint.lng)],
+                            router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                            lineOptions: { styles: [{ color: '#22c55e', weight: 5 }] },
+                            show: false
+                        }).addTo(map);
+                        map.fitBounds(altRoute.bounds);
+                        document.getElementById('routeTime').innerHTML = `${altAIAnalysis.realTime} мин (оптимальный)`;
+                        document.getElementById('recommendationText').innerHTML = "✅ Альтернативный маршрут выбран. Дорога свободнее.";
+                    });
+                } else {
+                    altContainer.innerHTML = '';
+                }
+            });
+            
+            routingControl.on('routingerror', () => {
+                alert('Ошибка построения маршрута');
+                document.getElementById('aiStatus').innerHTML = 'AI анализ прерван';
+            });
+        }
+        
+        // ---------- МАРКЕРЫ ----------
+        function updateStartMarker(lat, lng) {
+            if (startMarker) map.removeLayer(startMarker);
+            startMarker = L.marker([lat, lng], {
+                icon: L.divIcon({ className: 'custom-marker-a', iconSize: [18, 18] }),
+                draggable: true
+            }).addTo(map).bindPopup('🚗 Старт');
+            startMarker.on('dragend', (e) => {
+                const pos = e.target.getLatLng();
+                startPoint = { lat: pos.lat, lng: pos.lng };
+                document.getElementById('pointA').value = `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`;
+                if (startPoint && endPoint) buildAISmartRoute();
+            });
+            startPoint = { lat, lng };
+        }
+        
+        function updateEndMarker(lat, lng) {
+            if (endMarker) map.removeLayer(endMarker);
+            endMarker = L.marker([lat, lng], {
+                icon: L.divIcon({ className: 'custom-marker-b', iconSize: [18, 18] }),
+                draggable: true
+            }).addTo(map).bindPopup('🏁 Финиш');
+            endMarker.on('dragend', (e) => {
+                const pos = e.target.getLatLng();
+                endPoint = { lat: pos.lat, lng: pos.lng };
+                document.getElementById('pointB').value = `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}`;
+                if (startPoint && endPoint) buildAISmartRoute();
+            });
+            endPoint = { lat, lng };
+        }
+        
+        // ---------- ОБРАБОТЧИКИ ----------
+        map.on('click', (e) => {
+            if (clickMode === 'a') {
+                updateStartMarker(e.latlng.lat, e.latlng.lng);
+                document.getElementById('pointA').value = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+            } else {
+                updateEndMarker(e.latlng.lat, e.latlng.lng);
+                document.getElementById('pointB').value = `${e.latlng.lat.toFixed(5)}, ${e.latlng.lng.toFixed(5)}`;
+                if (startPoint && endPoint) buildAISmartRoute();
+            }
+        });
+        
+        function getLocation(type) {
+            if (!navigator.geolocation) return alert('Геолокация не поддерживается');
+            navigator.geolocation.getCurrentPosition((pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                if (type === 'a') {
+                    updateStartMarker(lat, lng);
+                    document.getElementById('pointA').value = `Моё местоположение`;
+                } else {
+                    updateEndMarker(lat, lng);
+                    document.getElementById('pointB').value = `Моё местоположение`;
+                }
+                map.setView([lat, lng], 14);
+                if (startPoint && endPoint) buildAISmartRoute();
+            }, () => alert('Не удалось определить местоположение'));
+        }
+        
+        document.getElementById('useMyLocationA').onclick = () => getLocation('a');
+        document.getElementById('useMyLocationB').onclick = () => getLocation('b');
+        document.getElementById('buildRouteBtn').onclick = () => buildAISmartRoute();
+        document.getElementById('swapPointsBtn').onclick = () => {
+            if (!startPoint || !endPoint) return;
+            const temp = startPoint;
+            startPoint = endPoint;
+            endPoint = temp;
+            updateStartMarker(startPoint.lat, startPoint.lng);
+            updateEndMarker(endPoint.lat, endPoint.lng);
+            document.getElementById('pointA').value = `${startPoint.lat.toFixed(5)}, ${startPoint.lng.toFixed(5)}`;
+            document.getElementById('pointB').value = `${endPoint.lat.toFixed(5)}, ${endPoint.lng.toFixed(5)}`;
+            buildAISmartRoute();
+        };
+        document.getElementById('clearRouteBtn').onclick = () => {
+            if (routingControl) map.removeControl(routingControl);
+            if (startMarker) map.removeLayer(startMarker);
+            if (endMarker) map.removeLayer(endMarker);
+            startPoint = null; endPoint = null;
+            document.getElementById('pointA').value = '';
+            document.getElementById('pointB').value = '';
+            document.getElementById('routeStats').classList.add('hidden');
+            document.getElementById('aiStatus').innerHTML = 'Анализирую трафик Бишкека...';
+        };
+        
+        document.getElementById('modeA').onclick = () => {
+            clickMode = 'a';
+            document.getElementById('modeA').className = 'px-4 py-1.5 rounded-lg text-xs bg-green-600 text-white';
+            document.getElementById('modeB').className = 'px-4 py-1.5 rounded-lg text-xs bg-gray-700 text-white';
+        };
+        document.getElementById('modeB').onclick = () => {
+            clickMode = 'b';
+            document.getElementById('modeB').className = 'px-4 py-1.5 rounded-lg text-xs bg-green-600 text-white';
+            document.getElementById('modeA').className = 'px-4 py-1.5 rounded-lg text-xs bg-gray-700 text-white';
+        };
+        
+        async function geocode(address, type) {
+            if (!address.trim()) return;
+            const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address + ', Бишкек')}&format=json&limit=1`);
+            const data = await res.json();
+            if (data[0]) {
+                const lat = parseFloat(data[0].lat);
+                const lng = parseFloat(data[0].lon);
+                if (type === 'a') {
+                    updateStartMarker(lat, lng);
+                    document.getElementById('pointA').value = address;
+                } else {
+                    updateEndMarker(lat, lng);
+                    document.getElementById('pointB').value = address;
+                }
+                map.setView([lat, lng], 15);
+                if (startPoint && endPoint) buildAISmartRoute();
+            }
+        }
+        
+        document.getElementById('pointA').addEventListener('change', (e) => geocode(e.target.value, 'a'));
+        document.getElementById('pointB').addEventListener('change', (e) => geocode(e.target.value, 'b'));
+        
+        // Модалка
+        const loginBtn = document.getElementById('loginBtn');
+        const loginModal = document.getElementById('loginModal');
+        const closeModal = document.getElementById('closeModal');
+        loginBtn.onclick = () => loginModal.classList.remove('hidden');
+        closeModal.onclick = () => loginModal.classList.add('hidden');
+        window.onclick = (e) => { if (e.target === loginModal) loginModal.classList.add('hidden'); };
+        
+        // Запуск
+        loadPotholes();
+        setTimeout(() => {
+            updateStartMarker(42.8746, 74.5698);
+            updateEndMarker(42.8824, 74.6122);
+            document.getElementById('pointA').value = '42.87460, 74.56980';
+            document.getElementById('pointB').value = '42.88240, 74.61220';
+            setTimeout(() => buildAISmartRoute(), 500);
+        }, 500);
+    </script>
+</body>
+</html>
